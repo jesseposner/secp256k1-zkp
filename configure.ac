@@ -161,6 +161,11 @@ AC_ARG_ENABLE(module_schnorrsig,
     [enable_module_schnorrsig=$enableval],
     [enable_module_schnorrsig=no])
 
+AC_ARG_ENABLE(module_ecdsa-adaptor,
+    AS_HELP_STRING([--enable-module-ecdsa-adaptor],[enable ECDSA adaptor module [default=no]]),
+    [enable_module_ecdsa_adaptor=$enableval],
+    [enable_module_ecdsa_adaptor=no])
+
 AC_ARG_ENABLE(external_default_callbacks,
     AS_HELP_STRING([--enable-external-default-callbacks],[enable external default callback functions [default=no]]),
     [use_external_default_callbacks=$enableval],
@@ -509,6 +514,12 @@ if test x"$enable_module_extrakeys" = x"yes"; then
   AC_DEFINE(ENABLE_MODULE_EXTRAKEYS, 1, [Define this symbol to enable the extrakeys module])
 fi
 
+if test x"$enable_module_ecdsa_adaptor" = x"yes"; then
+  AC_DEFINE(ENABLE_MODULE_ECDSA_ADAPTOR, 1, [Define this symbol to enable the ECDSA adaptor module])
+fi
+
+AC_C_BIGENDIAN()
+
 if test x"$use_external_asm" = x"yes"; then
   AC_DEFINE(USE_EXTERNAL_ASM, 1, [Define this symbol if an external (non-inline) assembly implementation is used])
 fi
@@ -601,6 +612,7 @@ AM_CONDITIONAL([ENABLE_MODULE_RANGEPROOF], [test x"$enable_module_rangeproof" = 
 AM_CONDITIONAL([ENABLE_MODULE_WHITELIST], [test x"$enable_module_whitelist" = x"yes"])
 AM_CONDITIONAL([ENABLE_MODULE_EXTRAKEYS], [test x"$enable_module_extrakeys" = x"yes"])
 AM_CONDITIONAL([ENABLE_MODULE_SCHNORRSIG], [test x"$enable_module_schnorrsig" = x"yes"])
+AM_CONDITIONAL([ENABLE_MODULE_ECDSA_ADAPTOR], [test x"$enable_module_ecdsa_adaptor" = x"yes"])
 AM_CONDITIONAL([USE_EXTERNAL_ASM], [test x"$use_external_asm" = x"yes"])
 AM_CONDITIONAL([USE_ASM_ARM], [test x"$set_asm" = x"arm"])
 AM_CONDITIONAL([ENABLE_MODULE_SURJECTIONPROOF], [test x"$enable_module_surjectionproof" = x"yes"])
@@ -625,6 +637,7 @@ echo "  module ecdh             = $enable_module_ecdh"
 echo "  module recovery         = $enable_module_recovery"
 echo "  module extrakeys        = $enable_module_extrakeys"
 echo "  module schnorrsig       = $enable_module_schnorrsig"
+echo "  module ecdsa-adaptor    = $enable_module_ecdsa_adaptor"
 echo
 echo "  asm                     = $set_asm"
 echo "  bignum                  = $set_bignum"
