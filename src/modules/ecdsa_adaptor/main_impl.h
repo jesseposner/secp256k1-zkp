@@ -65,7 +65,7 @@ static int secp256k1_ecdsa_adaptor_sig_deserialize(secp256k1_ge *r, secp256k1_sc
     return 1;
 }
 
-int secp256k1_ecdsa_adaptor_fe_to_scalar(secp256k1_scalar *s, const secp256k1_fe *fe) {
+static int secp256k1_ecdsa_adaptor_fe_to_scalar(secp256k1_scalar *s, const secp256k1_fe *fe) {
     unsigned char b[32];
     int overflow;
 
@@ -75,7 +75,7 @@ int secp256k1_ecdsa_adaptor_fe_to_scalar(secp256k1_scalar *s, const secp256k1_fe
 }
 
 /* 5. s' = k⁻¹(H(m) + x_coord(R)x) */
-int secp256k1_ecdsa_adaptor_sign_helper(secp256k1_scalar *sigs, secp256k1_scalar *message, secp256k1_scalar *k, secp256k1_ge *r, secp256k1_scalar *sk) {
+static int secp256k1_ecdsa_adaptor_sign_helper(secp256k1_scalar *sigs, secp256k1_scalar *message, secp256k1_scalar *k, secp256k1_ge *r, secp256k1_scalar *sk) {
     secp256k1_scalar sigr;
     secp256k1_scalar n;
 
@@ -163,7 +163,7 @@ int secp256k1_ecdsa_adaptor_sign(const secp256k1_context* ctx, unsigned char *ad
     return 1;
 }
 
-SECP256K1_API int secp256k1_ecdsa_adaptor_sig_verify_helper(const secp256k1_context* ctx, secp256k1_ge *result, secp256k1_scalar *sigr, secp256k1_scalar *sigs, const secp256k1_ge *pubkey, const secp256k1_scalar *message) {
+static int secp256k1_ecdsa_adaptor_sig_verify_helper(const secp256k1_context* ctx, secp256k1_ge *result, secp256k1_scalar *sigr, secp256k1_scalar *sigs, const secp256k1_ge *pubkey, const secp256k1_scalar *message) {
     secp256k1_scalar sn, u1, u2;
     secp256k1_gej pubkeyj;
     secp256k1_gej pr;
