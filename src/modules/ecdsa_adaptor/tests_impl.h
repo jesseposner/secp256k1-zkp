@@ -56,7 +56,7 @@ void rand_flip_bit(unsigned char *array, size_t n) {
 
 /* Helper function for test_ecdsa_adaptor_spec_vectors
  * Tests the adaptor signature APIs. */
-void test_ecdsa_adaptor_spec_vectors_check(const unsigned char *adaptor_sig162, const unsigned char *msg32, const unsigned char *pubkey33, const unsigned char *encryption_key33, const unsigned char *decryption_key32, const unsigned char *signature64) {
+void test_ecdsa_adaptor_spec_vectors_check(const unsigned char *adaptor_sig162, const unsigned char *msg32, const unsigned char *pubkey33, const unsigned char *encryption_key33, const unsigned char *decryption_key32, const unsigned char *signature64, int expected) {
     unsigned char adaptor_secret[32];
     unsigned char signature[64];
     secp256k1_ecdsa_signature s;
@@ -71,7 +71,7 @@ void test_ecdsa_adaptor_spec_vectors_check(const unsigned char *adaptor_sig162, 
     secp256k1_pubkey_save(&pubkey, &pubkey_ge);
 
     /* ecdsa_adaptor_verify */
-    CHECK(secp256k1_ecdsa_adaptor_sig_verify(ctx, adaptor_sig162, &pubkey, msg32, &encryption_key));
+    CHECK(expected == secp256k1_ecdsa_adaptor_sig_verify(ctx, adaptor_sig162, &pubkey, msg32, &encryption_key));
 
     /* ecdsa_adaptor_decrypt */
     secp256k1_ecdsa_adaptor_adapt(ctx, &s, decryption_key32, adaptor_sig162);
@@ -147,7 +147,7 @@ void test_ecdsa_adaptor_spec_vectors(void) {
             0x37, 0x7c, 0xb7, 0xea, 0x30, 0x15, 0xff, 0x42,
             0x39, 0x40, 0x9f, 0xbb, 0xac, 0xd3, 0x8e, 0x83
         };
-        test_ecdsa_adaptor_spec_vectors_check(adaptor_sig, msg, pubkey, encryption_key, decryption_key, signature);
+        test_ecdsa_adaptor_spec_vectors_check(adaptor_sig, msg, pubkey, encryption_key, decryption_key, signature, 1);
     }
     {
         /* Test vector 1 */
@@ -210,7 +210,7 @@ void test_ecdsa_adaptor_spec_vectors(void) {
             0x5a, 0x01, 0xc1, 0x8d, 0xcd, 0xff, 0x35, 0xbc,
             0xb7, 0xfb, 0x11, 0xa4, 0x39, 0x3c, 0x9e, 0x09
         };
-        test_ecdsa_adaptor_spec_vectors_check(adaptor_sig, msg, pubkey, encryption_key, decryption_key, signature);
+        test_ecdsa_adaptor_spec_vectors_check(adaptor_sig, msg, pubkey, encryption_key, decryption_key, signature, 1);
     }
     {
         /* Test vector 2 */
@@ -273,7 +273,7 @@ void test_ecdsa_adaptor_spec_vectors(void) {
             0x70, 0x96, 0xdd, 0x5e, 0x72, 0x34, 0x3f, 0x39,
             0xc5, 0x15, 0x65, 0xb6, 0x11, 0x0f, 0x78, 0xbe
         };
-        test_ecdsa_adaptor_spec_vectors_check(adaptor_sig, msg, pubkey, encryption_key, decryption_key, signature);
+        test_ecdsa_adaptor_spec_vectors_check(adaptor_sig, msg, pubkey, encryption_key, decryption_key, signature, 1);
     }
 }
 
