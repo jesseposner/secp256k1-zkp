@@ -241,6 +241,64 @@ int sign(const secp256k1_context* ctx, struct signer_secrets *signer_secrets, st
     return secp256k1_frost_partial_sig_agg(ctx, sig64, &signer[signer_id].session, partial_sigs, THRESHOLD);
 }
 
+int refresh_shares(const secp256k1_context *ctx, struct signer_secrets *signer_secrets, struct signer *signer) {
+    int i, j;
+    secp256k1_frost_share refresh_shares[N_SIGNERS][N_SIGNERS];
+    secp256k1_pubkey refresh_commitments[N_SIGNERS][THRESHOLD-1];
+    secp256k1_pubkey commitments_after_refresh[N_SIGNERS][THRESHOLD];
+    const secp256k1_pubkey *refresh_vss_commitments[N_SIGNERS];
+    const secp256k1_pubkey *vss_commitments[N_SIGNERS];
+    const unsigned char *ids[N_SIGNERS];
+
+    for (i = 0; i < N_SIGNERS; i++) {
+        refresh_vss_commitments[i] = refresh_commitments[i];
+        vss_commitments[i] = signer[i].vss_commitment;
+        ids[i] = signer[i].id;
+    }
+
+    for (i = 0; i < N_SIGNERS; i++) {
+        unsigned char refresh_seed[32];
+        if (!fill_random(refresh_seed, sizeof(refresh_seed))) {
+            return 0;
+        }
+        /* Generate a polynomial share for the participants */
+        if (!secp256k1_frost_shares_gen_refresh(ctx, refresh_shares[i], refresh_commitments[i], refresh_seed, THRESHOLD, N_SIGNERS, ids)) {
+            return 0;
+        }
+    }
+
+    /* Exchange refresh shares and refresh coefficient commitments */
+    for (i = 0; i < N_SIGNERS; i++) {
+        secp256k1_frost_share share_after_refresh;
+        secp256k1_pubkey *vss_commitments_after_refresh[N_SIGNERS];
+        const secp256k1_frost_share *assigned_shares[N_SIGNERS];
+
+        /* Each participant receives a share from each participant corresponding to their index. */
+        for (j = 0; j < N_SIGNERS; j++) {
+            vss_commitments_after_refresh[j] = commitments_after_refresh[j];
+            assigned_shares[j] = &refresh_shares[j][i];
+        }
+        /* Each participant aggregates the shares they received. */
+        if (!secp256k1_frost_refresh_share(ctx, &share_after_refresh, vss_commitments_after_refresh, &signer_secrets[i].agg_share, vss_commitments, assigned_shares, refresh_vss_commitments, THRESHOLD, N_SIGNERS, signer[i].id)) {
+            return 0;
+        }
+        signer_secrets[i].agg_share = share_after_refresh;
+        /* Each participant generates public verification shares that are
+         * used for verifying partial signatures. */
+        if (!secp256k1_frost_compute_pubshare(ctx, &signer[i].pubshare, THRESHOLD, signer[i].id, (const secp256k1_pubkey *const *)vss_commitments_after_refresh, N_SIGNERS)) {
+            return 0;
+        }
+    }
+
+    for (i = 0; i < N_SIGNERS; i++) {
+        for (j = 0; j < THRESHOLD; j++) {
+            signer[i].vss_commitment[j] = commitments_after_refresh[i][j];
+        }
+    }
+
+    return 1;
+}
+
 int main(void) {
     secp256k1_context* ctx;
     int i;
@@ -280,6 +338,25 @@ int main(void) {
     printf("Tweaking................");
     /* Optionally tweak the aggregate key */
     if (!tweak(ctx, &pk, &keygen_cache)) {
+        printf("FAILED\n");
+        return 1;
+    }
+    printf("ok\n");
+    printf("Signing message.........");
+    if (!sign(ctx, signer_secrets, signers, msg, sig, &keygen_cache)) {
+        printf("FAILED\n");
+        return 1;
+    }
+    printf("ok\n");
+    printf("Verifying signature.....");
+    if (!secp256k1_schnorrsig_verify(ctx, sig, msg, 32, &pk)) {
+        printf("FAILED\n");
+        return 1;
+    }
+    printf("ok\n");
+    /* Refresh the shares and resign */
+    printf("Refreshing shares.......");
+    if (!refresh_shares(ctx, signer_secrets, signers)) {
         printf("FAILED\n");
         return 1;
     }

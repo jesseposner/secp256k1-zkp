@@ -222,6 +222,16 @@ SECP256K1_API int secp256k1_frost_shares_gen(
     const unsigned char * const *ids33
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4) SECP256K1_ARG_NONNULL(5) SECP256K1_ARG_NONNULL(8);
 
+SECP256K1_API int secp256k1_frost_shares_gen_refresh(
+    const secp256k1_context *ctx,
+    secp256k1_frost_share *shares,
+    secp256k1_pubkey *vss_commitment,
+    const unsigned char *seed32,
+    size_t threshold,
+    size_t n_participants,
+    const unsigned char * const *ids33
+) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4) SECP256K1_ARG_NONNULL(7);
+
 /** Aggregates shares
  *
  *  As part of the key generation protocol, each participant receives a share
@@ -283,6 +293,19 @@ SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int secp256k1_frost_share_verify(
     const secp256k1_frost_share *share,
     const secp256k1_pubkey * const *vss_commitment
 ) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4) SECP256K1_ARG_NONNULL(5);
+
+SECP256K1_API SECP256K1_WARN_UNUSED_RESULT int secp256k1_frost_refresh_share(
+    const secp256k1_context *ctx,
+    secp256k1_frost_share *share_after_refresh,
+    secp256k1_pubkey * *vss_commitments_after_refresh,
+    const secp256k1_frost_share *share,
+    const secp256k1_pubkey * const *vss_commitments,
+    const secp256k1_frost_share * const *refresh_shares,
+    const secp256k1_pubkey * const *refresh_vss_commitments,
+    size_t n_shares,
+    size_t threshold,
+    const unsigned char *id33
+) SECP256K1_ARG_NONNULL(1) SECP256K1_ARG_NONNULL(2) SECP256K1_ARG_NONNULL(3) SECP256K1_ARG_NONNULL(4) SECP256K1_ARG_NONNULL(5) SECP256K1_ARG_NONNULL(6) SECP256K1_ARG_NONNULL(7) SECP256K1_ARG_NONNULL(10);
 
 /** Computes a public verification share used for verifying partial signatures
  *
